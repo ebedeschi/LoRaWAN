@@ -422,6 +422,7 @@ static void TimerSetTimeout( TimerEvent_t *obj )
 
 void TimerLowPowerHandler( void )
 {
+//	sleep(5);
 //    if( ( TimerListHead != NULL ) && ( TimerListHead->IsRunning == true ) )
 //    {
 //        if( HasLoopedThroughMain < 5 )

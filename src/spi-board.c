@@ -15,9 +15,9 @@ Maintainer: Miguel Luis and Gregory Cristian
 #include "board.h"
 #include "spi-board.h"
 #include "bcm2835.h"
-//#include <semaphore.h>
+#include <semaphore.h>
 
-//sem_t mutex;
+sem_t mutex;
 
 void SpiInit( Spi_t *obj, PinNames mosi, PinNames miso, PinNames sclk, PinNames nss )
 {
@@ -47,11 +47,11 @@ void SpiInit( Spi_t *obj, PinNames mosi, PinNames miso, PinNames sclk, PinNames 
 
 	obj->Spi = 1;
 
-//	/* create, initialize semaphore */
-//	if( sem_init(&mutex,1,1) < 0)
-//	{
-//		printf("Err semaphore initilization\n");
-//	}
+	/* create, initialize semaphore */
+	if( sem_init(&mutex,1,1) < 0)
+	{
+		printf("Err semaphore initilization\n");
+	}
 }
 
 void SpiDeInit( Spi_t *obj )
@@ -78,11 +78,11 @@ uint16_t SpiInOut( Spi_t *obj, uint16_t outData )
         while( 1 );
     }
     
-//    sem_wait(&mutex);
-//    ret = bcm2835_spi_transfer(outData);
-//    sem_post(&mutex);
+    sem_wait(&mutex);
+    ret = bcm2835_spi_transfer(outData);
+    sem_post(&mutex);
 
-    return bcm2835_spi_transfer(outData);
+    return ret;
 
 //    while( SPI_I2S_GetFlagStatus( obj->Spi, SPI_I2S_FLAG_TXE ) == RESET );
 //    SPI_I2S_SendData( obj->Spi, outData );

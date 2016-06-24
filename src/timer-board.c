@@ -343,7 +343,7 @@ void TIM2_IRQHandler( union sigval val )
 		if( TimerTickCounter == TimeoutCntValue )
 		{
 			TimerIrqHandler( );
-			printf("\TimerIrqHandler");
+//			printf("\TimerIrqHandler");
 		}
 	}
 

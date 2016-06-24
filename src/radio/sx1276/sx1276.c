@@ -252,6 +252,7 @@ RadioState_t SX1276GetStatus( void )
 
 void SX1276SetChannel( uint32_t freq )
 {
+	printf("channel: %d\n", freq);
     SX1276.Settings.Channel = freq;
     freq = ( uint32_t )( ( double )freq / ( double )FREQ_STEP );
     SX1276Write( REG_FRFMSB, ( uint8_t )( ( freq >> 16 ) & 0xFF ) );
@@ -504,7 +505,6 @@ void SX1276SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
                 SX1276Write( REG_LR_PLLHOP, ( SX1276Read( REG_LR_PLLHOP ) & RFLR_PLLHOP_FASTHOP_MASK ) | RFLR_PLLHOP_FASTHOP_ON );
                 SX1276Write( REG_LR_HOPPERIOD, SX1276.Settings.LoRa.HopPeriod );
             }
-
             if( ( bandwidth == 9 ) && ( RF_MID_BAND_THRESH ) )
             {
             	printf("errata: 1\n");
@@ -1399,6 +1399,7 @@ void SX1276OnTimeoutIrq( void )
 
 void SX1276OnDio0Irq( void )
 {
+	printf("\nSX1276OnDio0Irq\n");
     volatile uint8_t irqFlags = 0;
 
     switch( SX1276.Settings.State )
@@ -1595,6 +1596,7 @@ void SX1276OnDio0Irq( void )
 
 void SX1276OnDio1Irq( void )
 {
+	printf("\nSX1276OnDio1Irq\n");
     switch( SX1276.Settings.State )
     {                
         case RF_RX_RUNNING:
@@ -1669,6 +1671,7 @@ void SX1276OnDio1Irq( void )
 
 void SX1276OnDio2Irq( void )
 {
+	printf("\nSX1276OnDio2Irq\n");
     switch( SX1276.Settings.State )
     {                
         case RF_RX_RUNNING:
@@ -1733,6 +1736,7 @@ void SX1276OnDio2Irq( void )
 
 void SX1276OnDio3Irq( void )
 {
+	printf("\nSX1276OnDio3Irq\n");
     switch( SX1276.Settings.Modem )
     {
     case MODEM_FSK:
@@ -1764,6 +1768,7 @@ void SX1276OnDio3Irq( void )
 
 void SX1276OnDio4Irq( void )
 {
+	printf("\nSX1276OnDio4Irq\n");
     switch( SX1276.Settings.Modem )
     {
     case MODEM_FSK:

@@ -100,7 +100,7 @@ void BoardGetUniqueId( uint8_t *id )
     id[3] = 0;
     id[2] = 0;
     id[1] = 0;
-    id[0] = 0;
+    id[0] = 1;
 }
 
 uint8_t BoardMeasurePotiLevel( void ) 

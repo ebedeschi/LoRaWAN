@@ -1539,7 +1539,7 @@ static void OnRxWindow2TimerEvent( void )
 static void OnAckTimeoutTimerEvent( void )
 {
     TimerStop( &AckTimeoutTimer );
-
+    printf("--Timeout\n");
     if( NodeAckRequested == true )
     {
         AckTimeoutRetry = true;

@@ -29,7 +29,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 /*!
  * Hardware Time base in us
  */
-#define IRQ_TIMER                              500000 //us
+#define IRQ_TIMER                              250000 //us
 
 /*!
  * Flag used to set the RF switch control pins in low power mode when the radio is not active.
@@ -64,134 +64,173 @@ const struct Radio_s Radio =
     SX1276SetMaxPayloadLength
 };
 
+const char *byte_to_binary(int x)
+{
+    static char b[9];
+    b[0] = '\0';
+
+    int z;
+    for (z = 128; z > 0; z >>= 1)
+    {
+        strcat(b, ((x & z) == z) ? "1" : "0");
+    }
+
+    return b;
+}
+
+static bool check = false;
+
 void checkStatusRegister()
 {
-	char* b_irq_flag;
-	uint8_t irq_flag;
-	irq_flag = Radio.Read( REG_LR_IRQFLAGS );
-
-	uint8_t dio_mapping_1 = SX1276Read( REG_DIOMAPPING1 );
-	uint8_t dio_mapping_2 = SX1276Read( REG_DIOMAPPING2 );
-
-	switch( SX1276.Settings.Modem )
+	if(check == false)
 	{
-		case MODEM_FSK:
-			{
+		check = true;
 
-			}
-			break;
-		case MODEM_LORA:
-			{
-				// DIO0
-				// 00 --> RXDONE
-				if( ( dio_mapping_1 & RFLR_DIOMAPPING1_DIO0_MASK ) == RFLR_DIOMAPPING1_DIO0_00 )
-				{
-					// RXDONE
-					if( ( irq_flag & RFLR_IRQFLAGS_RXDONE_MASK) == RFLR_IRQFLAGS_RXDONE )
-						SX1276OnDio0Irq();
-				}
-				// 01 --> TXDONE
-				else if( ( dio_mapping_1 & RFLR_DIOMAPPING1_DIO0_MASK ) == RFLR_DIOMAPPING1_DIO0_01 )
-				{
-					// TXDONE
-					if( ( irq_flag & RFLR_IRQFLAGS_TXDONE_MASK) == RFLR_IRQFLAGS_TXDONE )
-						SX1276OnDio0Irq();
-				}
-				// 10 --> CADDONE
-				else if( ( dio_mapping_1 & RFLR_DIOMAPPING1_DIO0_MASK ) == RFLR_DIOMAPPING1_DIO0_10 )
-				{
-					// CADDONE
-					if( ( irq_flag & RFLR_IRQFLAGS_CADDONE_MASK) == RFLR_IRQFLAGS_CADDONE )
-						SX1276OnDio0Irq();
-				}
+		char* b_irq_flag;
+		uint8_t irq_flag;
+		irq_flag = Radio.Read( REG_LR_IRQFLAGS );
+		printf("\nirq %d %s", irq_flag, byte_to_binary( irq_flag ));
 
-				// DIO1
-				// 00 --> RXTIMEOUT
-				if( ( dio_mapping_1 & RFLR_DIOMAPPING1_DIO1_MASK ) == RFLR_DIOMAPPING1_DIO1_00 )
-				{
-					// RXTIMEOUT
-					if( ( irq_flag & RFLR_IRQFLAGS_RXTIMEOUT_MASK) == RFLR_IRQFLAGS_RXTIMEOUT )
-						SX1276OnDio1Irq();
-				}
-				// 01 --> FHSSCHANGEDCHANNEL
-				else if( ( dio_mapping_1 & RFLR_DIOMAPPING1_DIO1_MASK ) == RFLR_DIOMAPPING1_DIO1_01 )
-				{
-					// FHSSCHANGEDCHANNEL
-					if( ( irq_flag & RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL_MASK) == RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL )
-						SX1276OnDio1Irq();
-				}
-				// 10 --> CADDETECTED
-				else if( ( dio_mapping_1 & RFLR_DIOMAPPING1_DIO1_MASK ) == RFLR_DIOMAPPING1_DIO1_10 )
-				{
-					// CADDETECTED
-					if( ( irq_flag & RFLR_IRQFLAGS_CADDETECTED_MASK) == RFLR_IRQFLAGS_CADDETECTED )
-						SX1276OnDio1Irq();
-				}
+		uint8_t dio_mapping_1 = SX1276Read( REG_DIOMAPPING1 );
+		printf("\ndm1 %d %s", dio_mapping_1, byte_to_binary( dio_mapping_1 ));
+		uint8_t dio_mapping_2 = SX1276Read( REG_DIOMAPPING2 );
+//		printf("\ndm2 %d %s", dio_mapping_2, byte_to_binary( dio_mapping_2 ));
+		printf("\ns %d ", SX1276.Settings.State);
 
-				// DIO2
-				// 00 --> FHSSCHANGEDCHANNEL
-				if( ( dio_mapping_1 & RFLR_DIOMAPPING1_DIO2_MASK ) == RFLR_DIOMAPPING1_DIO2_00 )
+		switch( SX1276.Settings.Modem )
+		{
+			case MODEM_FSK:
 				{
-					// RXTIMEOUT
-					if( ( irq_flag & RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL_MASK) == RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL )
-						SX1276OnDio2Irq();
-				}
-				// 01 --> FHSSCHANGEDCHANNEL
-				else if( ( dio_mapping_1 & RFLR_DIOMAPPING1_DIO2_MASK ) == RFLR_DIOMAPPING1_DIO2_01 )
-				{
-					// FHSSCHANGEDCHANNEL
-					if( ( irq_flag & RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL_MASK) == RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL )
-						SX1276OnDio2Irq();
-				}
-				// 10 --> FHSSCHANGEDCHANNEL
-				else if( ( dio_mapping_1 & RFLR_DIOMAPPING1_DIO2_MASK ) == RFLR_DIOMAPPING1_DIO2_10 )
-				{
-					// FHSSCHANGEDCHANNEL
-					if( ( irq_flag & RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL_MASK) == RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL )
-						SX1276OnDio2Irq();
-				}
 
-				// DIO3
-				// 00 --> CADDONE
-				if( ( dio_mapping_1 & RFLR_DIOMAPPING1_DIO3_MASK ) == RFLR_DIOMAPPING1_DIO3_00 )
-				{
-					// CADDONE
-					if( ( irq_flag & RFLR_IRQFLAGS_CADDONE_MASK) == RFLR_IRQFLAGS_CADDONE )
-						SX1276OnDio3Irq();
 				}
-				// 01 --> VALIDHEADER
-				else if( ( dio_mapping_1 & RFLR_DIOMAPPING1_DIO3_MASK ) == RFLR_DIOMAPPING1_DIO3_01 )
+				break;
+			case MODEM_LORA:
 				{
-					// VALIDHEADER
-					if( ( irq_flag & RFLR_IRQFLAGS_VALIDHEADER_MASK) == RFLR_IRQFLAGS_VALIDHEADER )
-						SX1276OnDio3Irq();
-				}
-				// 10 --> PAYLOADCRCERROR
-				else if( ( dio_mapping_1 & RFLR_DIOMAPPING1_DIO3_MASK ) == RFLR_DIOMAPPING1_DIO3_10 )
-				{
-					// PAYLOADCRCERROR
-					if( ( irq_flag & RFLR_IRQFLAGS_PAYLOADCRCERROR_MASK) == RFLR_IRQFLAGS_PAYLOADCRCERROR )
-						SX1276OnDio3Irq();
-				}
+					// DIO0
+					// 00 --> RXDONE
+					if( ( ( dio_mapping_1 & ~RFLR_DIOMAPPING1_DIO0_MASK )  ) == RFLR_DIOMAPPING1_DIO0_00 )
+					{
+//						printf("\nDIO0_00");
+						// RXDONE
+						if( ( irq_flag & RFLR_IRQFLAGS_RXDONE_MASK) == RFLR_IRQFLAGS_RXDONE )
+							SX1276OnDio0Irq();
+					}
+					// 01 --> TXDONE
+					if( ( ( dio_mapping_1 & ~RFLR_DIOMAPPING1_DIO0_MASK )  ) == RFLR_DIOMAPPING1_DIO0_01 )
+					{
+//						printf("\nDIO0_01");
+						// TXDONE
+						if( ( irq_flag & RFLR_IRQFLAGS_TXDONE_MASK) == RFLR_IRQFLAGS_TXDONE )
+							SX1276OnDio0Irq();
+					}
+					// 10 --> CADDONE
+					if( ( ( dio_mapping_1 & ~RFLR_DIOMAPPING1_DIO0_MASK  )  ) == RFLR_DIOMAPPING1_DIO0_10 )
+					{
+//						printf("\nDIO0_10");
+						// CADDONE
+//						if( ( irq_flag & RFLR_IRQFLAGS_CADDONE_MASK) == RFLR_IRQFLAGS_CADDONE )
+//							SX1276OnDio0Irq();
+					}
 
-				// DIO4
-				// 00 --> CADDETECTED
-				if( ( dio_mapping_2 & RFLR_DIOMAPPING2_DIO4_MASK ) == RFLR_DIOMAPPING2_DIO4_00 )
-				{
-					// CADDETECTED
-					if( ( irq_flag & RFLR_IRQFLAGS_CADDETECTED_MASK) == RFLR_IRQFLAGS_CADDETECTED )
-						SX1276OnDio4Irq();
+					// DIO1
+					// 00 --> RXTIMEOUT
+					if( ( ( dio_mapping_1 & ~RFLR_DIOMAPPING1_DIO1_MASK  )  ) == RFLR_DIOMAPPING1_DIO1_00 )
+					{
+//						printf("\nDIO1_00");
+						// RXTIMEOUT
+						if( ( irq_flag & RFLR_IRQFLAGS_RXTIMEOUT_MASK) == RFLR_IRQFLAGS_RXTIMEOUT )
+							SX1276OnDio1Irq();
+					}
+					// 01 --> FHSSCHANGEDCHANNEL
+					if( ( ( dio_mapping_1 & ~RFLR_DIOMAPPING1_DIO1_MASK  )  ) == RFLR_DIOMAPPING1_DIO1_01 )
+					{
+//						printf("\nDIO1_01");
+						// FHSSCHANGEDCHANNEL
+//						if( ( irq_flag & RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL_MASK) == RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL )
+//							SX1276OnDio1Irq();
+					}
+					// 10 --> CADDETECTED
+					if( ( ( dio_mapping_1 & ~RFLR_DIOMAPPING1_DIO1_MASK  ) ) == RFLR_DIOMAPPING1_DIO1_10 )
+					{
+//						printf("\nDIO1_10");
+						// CADDETECTED
+//						if( ( irq_flag & RFLR_IRQFLAGS_CADDETECTED_MASK) == RFLR_IRQFLAGS_CADDETECTED )
+//							SX1276OnDio1Irq();
+					}
+
+					// DIO2
+					// 00 --> FHSSCHANGEDCHANNEL
+					if( ( ( dio_mapping_1 & ~RFLR_DIOMAPPING1_DIO2_MASK )  ) == RFLR_DIOMAPPING1_DIO2_00 )
+					{
+//						printf("\nDIO2_00");
+						// RXTIMEOUT
+//						if( ( irq_flag & RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL_MASK) == RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL )
+//							SX1276OnDio2Irq();
+					}
+					// 01 --> FHSSCHANGEDCHANNEL
+					if( ( ( dio_mapping_1 & ~RFLR_DIOMAPPING1_DIO2_MASK )  ) == RFLR_DIOMAPPING1_DIO2_01 )
+					{
+//						printf("\nDIO2_01");
+						// FHSSCHANGEDCHANNEL
+//						if( ( irq_flag & RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL_MASK) == RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL )
+//							SX1276OnDio2Irq();
+					}
+					// 10 --> FHSSCHANGEDCHANNEL
+					if( ( ( dio_mapping_1 & ~RFLR_DIOMAPPING1_DIO2_MASK )  ) == RFLR_DIOMAPPING1_DIO2_10 )
+					{
+//						printf("\nDIO2_10");
+						// FHSSCHANGEDCHANNEL
+//						if( ( irq_flag & RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL_MASK) == RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL )
+//							SX1276OnDio2Irq();
+					}
+
+					// DIO3
+					// 00 --> CADDONE
+					if( ( dio_mapping_1 & ~RFLR_DIOMAPPING1_DIO3_MASK ) == RFLR_DIOMAPPING1_DIO3_00 )
+					{
+//						printf("\nDIO3_00");
+						// CADDONE
+//						if( ( irq_flag & RFLR_IRQFLAGS_CADDONE_MASK) == RFLR_IRQFLAGS_CADDONE )
+//							SX1276OnDio3Irq();
+					}
+					// 01 --> VALIDHEADER
+					if( ( dio_mapping_1 & ~RFLR_DIOMAPPING1_DIO3_MASK ) == RFLR_DIOMAPPING1_DIO3_01 )
+					{
+//						printf("\nDIO3_01");
+						// VALIDHEADER
+//						if( ( irq_flag & RFLR_IRQFLAGS_VALIDHEADER_MASK) == RFLR_IRQFLAGS_VALIDHEADER )
+//							SX1276OnDio3Irq();
+					}
+					// 10 --> PAYLOADCRCERROR
+					if( ( dio_mapping_1 & ~RFLR_DIOMAPPING1_DIO3_MASK ) == RFLR_DIOMAPPING1_DIO3_10 )
+					{
+//						printf("\nDIO3_10");
+						// PAYLOADCRCERROR
+//						if( ( irq_flag & RFLR_IRQFLAGS_PAYLOADCRCERROR_MASK) == RFLR_IRQFLAGS_PAYLOADCRCERROR )
+//							SX1276OnDio3Irq();
+					}
+
+					// DIO4
+					// 00 --> CADDETECTED
+					if( ( ( dio_mapping_2 & ~RFLR_DIOMAPPING2_DIO4_MASK ) ) == RFLR_DIOMAPPING2_DIO4_00 )
+					{
+//						printf("\nDIO4_00");
+						// CADDETECTED
+//						if( ( irq_flag & RFLR_IRQFLAGS_CADDETECTED_MASK) == RFLR_IRQFLAGS_CADDETECTED )
+//							SX1276OnDio4Irq();
+					}
+					// 01 --> PLLLOCK
+					// 10 --> PLLLOCK
+
+					// DIO5
+					// 00 --> MODEREADY
+					// 01 --> CLKOUT
+					// 10 --> CLKOUT
+
 				}
-				// 01 --> PLLLOCK
-				// 10 --> PLLLOCK
-
-				// DIO5
-				// 00 --> MODEREADY
-				// 01 --> CLKOUT
-				// 10 --> CLKOUT
-
-			}
-			break;
+				break;
+		}
+		check = false;
 	}
 
 }
@@ -222,31 +261,31 @@ struct itimerspec irq_in, irq_out;
 
 void SX1276IoIrqInit( DioIrqHandler **irqHandlers )
 {
-//    int ret;
-//
-//    pthread_attr_init( &irq_attr );
-//
-//    irq_parm.sched_priority = 255;
-//    pthread_attr_setschedparam(&irq_attr, &irq_parm);
-//
-//    irq_sig.sigev_notify = SIGEV_THREAD;
-//    irq_sig.sigev_notify_function = checkStatusRegister;
-//    irq_sig.sigev_value.sival_int =20;
-//    irq_sig.sigev_notify_attributes = &irq_attr;
-//
-//    //create a new timer.
-//    ret = timer_create(CLOCK_REALTIME, &irq_sig, &irq_timerid);
-//    if (ret == 0)
-//	{
-//    	irq_in.it_value.tv_sec = 0;
-//    	irq_in.it_value.tv_nsec = IRQ_TIMER * 1000;
-//    	irq_in.it_interval.tv_sec = 0;
-//    	irq_in.it_interval.tv_nsec = IRQ_TIMER * 1000;
-//		//issue the periodic timer request here.
-//		ret = timer_settime(irq_timerid, 0, &irq_in, &irq_out);
-//		if(ret != 0)
-//			printf("timer_settime() failed with %d\n", errno);
-//	}
+    int ret;
+
+    pthread_attr_init( &irq_attr );
+
+    irq_parm.sched_priority = 255;
+    pthread_attr_setschedparam(&irq_attr, &irq_parm);
+
+    irq_sig.sigev_notify = SIGEV_THREAD;
+    irq_sig.sigev_notify_function = checkStatusRegister;
+    irq_sig.sigev_value.sival_int =20;
+    irq_sig.sigev_notify_attributes = &irq_attr;
+
+    //create a new timer.
+    ret = timer_create(CLOCK_REALTIME, &irq_sig, &irq_timerid);
+    if (ret == 0)
+	{
+    	irq_in.it_value.tv_sec = 0;
+    	irq_in.it_value.tv_nsec = IRQ_TIMER * 1000;
+    	irq_in.it_interval.tv_sec = 0;
+    	irq_in.it_interval.tv_nsec = IRQ_TIMER * 1000;
+		//issue the periodic timer request here.
+		ret = timer_settime(irq_timerid, 0, &irq_in, &irq_out);
+		if(ret != 0)
+			printf("timer_settime() failed with %d\n", errno);
+	}
 
 
 //    GpioSetInterrupt( &SX1276.DIO0, IRQ_RISING_EDGE, IRQ_HIGH_PRIORITY, irqHandlers[0] );
